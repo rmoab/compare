@@ -13,7 +13,11 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.TreeMap;
 
@@ -28,7 +32,10 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.util.IOUtils;
 
@@ -52,7 +59,7 @@ public class OpenExcelValidate2 {
 	static String reportPathDivergencia;
 	static String path;
 	static int num = 0;
-	static String data;
+	static String reportData;
 
 
 	public static void main(String[] args) throws Exception {
@@ -67,9 +74,9 @@ public class OpenExcelValidate2 {
 
 			File diretorio = new File(caminhoPastaXML);
 
-			data = new SimpleDateFormat("yyyyMMddhhmm").format(new Date());
+			reportData = new SimpleDateFormat("yyyyMMddhhmm").format(new Date());
 
-			reportName = "report_" + data;
+			reportName = "report_" + reportData;
 			reportPath = caminhoPastaXML + reportName;
 			reportPathDivergencia = reportPath + "\\DIVERGENCIAS";
 			new File(reportPath).mkdir();
@@ -465,9 +472,7 @@ public class OpenExcelValidate2 {
 			workbook.write(out);
 
 			out.close();
-			workbook.close();
-
-			
+			workbook.close();	
 
 			//INICIO AJUSTAR LAYOUT REPORT
 			diretorio = new File(path + "/report");
@@ -475,7 +480,7 @@ public class OpenExcelValidate2 {
 			File fileReport = null;
 			for (File file : diretorio.listFiles()) {
 				System.out.println(file.getAbsolutePath());
-				if (file.getName().contains("nome_report")) {
+				if (file.getName().contains(nome_report)) {
 					System.out.println("dentro if:" +file.getAbsolutePath());
 						fileReport = file;
 						workbookReport = new XSSFWorkbook(new FileInputStream(file.getAbsolutePath()));
@@ -486,9 +491,9 @@ public class OpenExcelValidate2 {
 			XSSFSheet sheet = workbookReport.getSheetAt(0);
 			XSSFSheet sheetTemp = workbookReport.createSheet("Report Final");
 
-			contadorDestino = 0;
+			 contadorDestino = 0;
 			//Inicio Cabeçalho
-			tempSheet1 = workbookReport.getSheetAt(0);
+			 tempSheet1 = workbookReport.getSheetAt(0);	
 			for(int contadorLinha = 0;contadorLinha<2;contadorLinha++) {
 				// Get the source / new row
 				XSSFRow sourceRow = tempSheet1.getRow(contadorLinha);
@@ -561,7 +566,7 @@ public class OpenExcelValidate2 {
 					contadorDestino++;
 			}
 			//Fim Cabeçalho
-			
+
 			int contador = 1;
 			
 			//Inicio Corpo XML para Planilha
@@ -569,7 +574,8 @@ public class OpenExcelValidate2 {
 				XSSFRow sourceRow = sheet.getRow(j);
 				sheet.removeRow(sourceRow);
 			}
-			int numberofrows=sheet.getPhysicalNumberOfRows();
+			int numberofrows=tempSheet1.getPhysicalNumberOfRows();
+
 			for (int i = 0; i < 2; i++) {
 
 				if(i==0) {
@@ -577,11 +583,12 @@ public class OpenExcelValidate2 {
 					contadorDestino = 1;
 				}
 				if(i==1) {
+					contador = (numberofrows/2)+1;
 					contadorDestino = 2;
 				}
 				for(int contadorLinha = 0;contadorLinha<=numberofrows;contadorLinha++) {
 					// Get the source / new row
-					XSSFRow sourceRow = sheet.getRow(contadorLinha);
+					XSSFRow sourceRow = tempSheet1.getRow(contador);
 					XSSFRow newRow = sheetTemp.createRow(contadorDestino);
 					// If the old cell is null jump to next cell
 					if (isRowEmpty(sourceRow)) {
@@ -640,8 +647,8 @@ public class OpenExcelValidate2 {
 					}
 					if(i<1) {
 						// If there are are any merged regions in the source row, copy to new row
-						for (int h = 0; h < sheet.getNumMergedRegions(); h++) {
-							CellRangeAddress cellRangeAddress = sheet.getMergedRegion(h);
+						for (int h = 0; h < tempSheet1.getNumMergedRegions(); h++) {
+							CellRangeAddress cellRangeAddress = tempSheet1.getMergedRegion(h);
 							if (cellRangeAddress.getFirstRow() == sourceRow.getRowNum()) {
 								CellRangeAddress newCellRangeAddress = new CellRangeAddress(newRow.getRowNum(),
 										(newRow.getRowNum() + (cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow())),
@@ -654,106 +661,79 @@ public class OpenExcelValidate2 {
 					contador++;
 				}
 			}
-			//Fim Corpo XML para Planilha
-			//FIM AJUSTAR LAYOUT REPORT
-			
+			//Fim Corpo XML para Planilha			
 			workbookReport.removeSheetAt(0);
+			for (int j = 0; j <= (sheetTemp.getPhysicalNumberOfRows()/2); j++) {
+				sheetTemp.removeRow(sheetTemp.getRow(sheetTemp.getLastRowNum()));
+			}
 			sheetTemp.shiftRows(0, sheetTemp.getLastRowNum(), 1, true, false);
-
-			out = new FileOutputStream(fileReport);
+			sheetTemp.createRow(0).createCell(0).setBlank();
+			 out = new FileOutputStream(fileReport);
 
 			workbookReport.write(out);
 			out.close();
 			workbookReport.close();
 			//FIM AJUSTAR LAYOUT REPORT
 			
-			/*
+			
 			//INICIO JUNTAR REPORTS - EM DESENVOLVIMENTO
 			
-			//To DELETE
-			ArrayList<XSSFWorkbook> workbooks = new ArrayList<XSSFWorkbook>();
+			
 			
 			File xmlFile = new File(caminhoPastaXML + nome_planilha_xml);
 			System.out.println(xmlFile.getAbsolutePath());
 			ZipSecureFile.setMinInflateRatio(0);
-			workbooks = null;
-			workbooks.add(new XSSFWorkbook(new FileInputStream(xmlFile.getAbsolutePath())));
+			XSSFWorkbook workbookXML = new XSSFWorkbook(new FileInputStream(xmlFile.getAbsolutePath()));
+			XSSFSheet sheetXML = workbookXML.getSheetAt(0); 
 			
 			File reportFile = new File(path + "/report/" + nome_report);
 			System.out.println(reportFile.getAbsolutePath());
-			workbooks.add(new XSSFWorkbook(new FileInputStream(reportFile.getAbsolutePath())));
+			 workbookReport = new XSSFWorkbook(new FileInputStream(reportFile.getAbsolutePath()));
+			XSSFSheet sheetReport = workbookReport.getSheetAt(0); 
 			
 			File templateFile = new File(caminhoPastaXML+"template_novo.xlsx");
 			XSSFWorkbook workbookTemplate = new XSSFWorkbook(new FileInputStream(templateFile.getAbsolutePath()));
 			XSSFSheet sheetTemplate = workbookTemplate.getSheetAt(0); 
 			
-			Map<Integer, ArrayList<String>> reportData = new TreeMap<Integer, ArrayList<String>>();
-			ArrayList<String> listaPlanilha1;
-			ArrayList<String> listaPlanilha2;
-			ArrayList<String> listaPlanilha3;
+			Map<Integer, List<String>> reportData = new TreeMap<Integer, List<String>>();
+
+			//reportData = inserirRangeExcel(2,sheetReport.getPhysicalNumberOfRows(),0,2,reportData);
+			reportData = readExcel(reportData, sheetXML);
+			//reportData = inserirValorReportData(1,0,"E2E",reportData);
+			reportData = readExcel(reportData, sheetReport);
+			 contador = reportData.entrySet().size();
+			int rowno = 0;
 			
-			for (int k = 0; k < workbooks.size(); k++) {
-				for (int i = 0; i < workbooks.get(k).getSheetAt(0).getPhysicalNumberOfRows(); i++) {
-					XSSFRow sourceRow = workbooks.get(k).getSheetAt(0).getRow(i);
-					// Loop through source columns to add to new row
-					for (int j = 0; j < sourceRow.getLastCellNum(); j++) {
-						// Grab a copy of the old/new cell
-						XSSFCell oldCell = sourceRow.getCell(j);
-
-						/*
-						// Copy style from old cell and apply to new cell
-						XSSFCellStyle newCellStyle = workbookReport.createCellStyle();
-						newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
-						newCell.setCellStyle(newCellStyle);
-
-						// If there is a cell comment, copy
-						if (oldCell.getCellComment() != null) {
-							newCell.setCellComment(oldCell.getCellComment());
-						}
-
-						// If there is a cell hyperlink, copy
-						if (oldCell.getHyperlink() != null) {
-							newCell.setHyperlink(oldCell.getHyperlink());
-						}
-
-						// Set the cell data type
-						newCell.setCellType(oldCell.getCellType());
-
-						// Set the cell data value
-						switch (oldCell.getCellType()) {
-						case BLANK:
-							tempObject.add(oldCell.getStringCellValue());
-							break;
-						/*case BOOLEAN:
-							tempObject.add(oldCell.getBooleanCellValue());
-							break;
-						case ERROR:
-							tempObject.add(oldCell.getErrorCellValue());
-							break;
-						case FORMULA:
-							tempObject.add(oldCell.getCellFormula());
-							break;
-						case NUMERIC:
-							tempObject.add(oldCell.getNumericCellValue());
-							break;
-						case STRING:
-							tempObject.add(oldCell.getRichStringCellValue().toString());
-							break;
-						}
-					}
+			for (Map.Entry mp : reportData.entrySet()) {
+				XSSFRow row=sheetTemplate.createRow(rowno++);
+				List<String> lista = (List<String>) mp.getValue();
+				int cellno = 0;
+				for (String value : lista) {
+					row.createCell(cellno).setCellValue(value);
+					cellno++;
+				}
+				if(rowno>=contador) {
+					break;
 				}
 			}
 			
-			FileOutputStream out = new FileOutputStream(templateFile);
+			
+			Iterator<Entry<Integer,List<String>>> itr = reportData.entrySet().iterator();
+			while(itr.hasNext()) {
+				System.out.println(itr.next());
+			}
+			
+			 out = new FileOutputStream(templateFile);
 
 			workbookTemplate.write(out);
-
+			
 			out.close();
-			//workbookReport.close();         DESCOMENTAR NO FINAL
+			
+			workbookReport.close();        
 			workbookTemplate.close();
+			workbookXML.close();
 
-			*/
-					
+			
 			System.out.println("Acabou aqui!!!!!!!");
 		}
 
@@ -763,6 +743,79 @@ public class OpenExcelValidate2 {
 			e.printStackTrace();
 		}
 
+	}
+
+	/*private static Map<Integer, List<String>> inserirRangeExcel(int rowInicial, int rowFinal, int cellInicial, int cellFinal,
+			Map<Integer, List<String>> reportData) {
+		
+		for (int j = rowInicial; j < rowFinal; j++) {
+			if(reportData.get(j)==null)
+				reportData.put(j, new ArrayList<String>());
+		    for (Cell cell : row) {
+		        switch (cell.getCellType()) {
+		        	case BLANK:
+		        			reportData.get(new Integer(i)).add("");
+		        	break;
+		        	case STRING: 
+		            	reportData.get(new Integer(i)).add(cell.getRichStringCellValue().getString());
+		            break;
+		            case NUMERIC:
+		            	if (DateUtil.isCellDateFormatted(cell)) {
+		            	    reportData.get(i).add(cell.getDateCellValue() + "");
+		            	} else {
+		            	    reportData.get(i).add(cell.getNumericCellValue() + "");
+		            	}
+		            break;
+		            case BOOLEAN: 
+		            	reportData.get(i).add(cell.getBooleanCellValue() + "");
+		            break;
+		            case FORMULA: 
+		            	reportData.get(i).add(cell.getCellFormula() + "");
+		            break;
+		            default: reportData.get(new Integer(i)).add(" ");
+		        }
+		    }
+		}
+		return reportData;
+	}*/
+
+	private static Map<Integer, List<String>> inserirValorReportData(int key,int position,String value,Map<Integer, List<String>> data) {
+		data.get(new Integer(key)).add(position,value);
+		return data;
+	}
+
+	private static Map<Integer, List<String>> readExcel(Map<Integer, List<String>> data, XSSFSheet sheet) {
+		int i = 0;
+		for (Row row : sheet) {
+			if(data.get(i)==null)
+				data.put(i, new ArrayList<String>());
+		    for (Cell cell : row) {
+		        switch (cell.getCellType()) {
+		        	case BLANK:
+		        			data.get(new Integer(i)).add("");
+		        	break;
+		        	case STRING: 
+		            	data.get(new Integer(i)).add(cell.getRichStringCellValue().getString());
+		            break;
+		            case NUMERIC:
+		            	if (DateUtil.isCellDateFormatted(cell)) {
+		            	    data.get(i).add(cell.getDateCellValue() + "");
+		            	} else {
+		            	    data.get(i).add(cell.getNumericCellValue() + "");
+		            	}
+		            break;
+		            case BOOLEAN: 
+		            	data.get(i).add(cell.getBooleanCellValue() + "");
+		            break;
+		            case FORMULA: 
+		            	data.get(i).add(cell.getCellFormula() + "");
+		            break;
+		            default: data.get(new Integer(i)).add(" ");
+		        }
+		    }
+		    i++;
+		}
+		return data;
 	}
 
 	public static void uploadFile(String fileLocation) {
