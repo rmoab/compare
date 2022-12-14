@@ -1,0 +1,16 @@
+1 - baixar arquivo validadorApp.rar
+2 - extrair todo o conteudo para uma pasta.
+Exemplo: C:\Temp
+3 - mover arquivo template.txt para dentro da pasta onde ficam os arquivos XMLs.
+4 - abrir a planilha Validador.xlsb e clicar no botão 'Enable Content' (caso apareça). Fechar a planilha.
+5 - executar o arquivo validadorApp.bat
+6 - passar primeiro o caminho da pasta dos XMLs e teclar ENTER
+Exemplo: C:\Temp\XML\
+Obs.: Colocar os XMLs em uma pasta com nome sem espaços, exemplo: XML ou XML_SAIDA e ao digitar o caminho da pasta no app, colocar a barra no final (/)
+7 - passar em segundo lugar o caminho do arquivo de template + arquivo para validar no padrão e teclar ENTER 
+Exemplo: C:\Temp\VALIDADOR.xlsb
+8 - Deixar a aplicação rodando, ela poderá demorar alguns minutos pelo tamanho do arquivo validador. Ela irá abrir a pasta com os XMLs, ver quantos XMLs existem e validar cada um deles. Após cada validação, ele irá criar um novo arquivo .XLSb na pasta do arquivo de template de validação com os XMLs validados onde o nome do arquivo será a chave NFE.
+Exemplo: 21181256228356014868550030000000281413791763-procNFe.xml.xlsb
+9 - Ao final de toda a execução será exibida uma mensagem informando "Validação dos arquivos concluida com sucesso." e o resultado.
+Os arquivos XMLs que apresentaram divergência serão listados na tela do aplicativo
+Obs.: Deixar a planilha do arquivo de template .XLSB fechada enquanto executa. A aplicação automaticamente irá abri-la quando necessário.
