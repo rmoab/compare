@@ -79,7 +79,7 @@ public class OpenExcelValidate2 {
 			//      name = path + "23190507526557000886550010001439911773469596-procNFe.xml";
 
 			ArrayList<String> nomesArquivosXML = new ArrayList<String>();
-/*
+
 			//CRIAR XML REPORT
 			for (File file : diretorio.listFiles()) {
 				if (file.getName().contains(".xml")) {
@@ -666,8 +666,9 @@ public class OpenExcelValidate2 {
 			out.close();
 			workbookReport.close();
 			//FIM AJUSTAR LAYOUT REPORT
-			*/
-			//INICIO JUNTAR REPORTS
+			
+			/*
+			//INICIO JUNTAR REPORTS - EM DESENVOLVIMENTO
 			
 			//To DELETE
 			ArrayList<XSSFWorkbook> workbooks = new ArrayList<XSSFWorkbook>();
@@ -716,7 +717,7 @@ public class OpenExcelValidate2 {
 						}
 
 						// Set the cell data type
-						newCell.setCellType(oldCell.getCellType());*/
+						newCell.setCellType(oldCell.getCellType());
 
 						// Set the cell data value
 						switch (oldCell.getCellType()) {
@@ -734,7 +735,7 @@ public class OpenExcelValidate2 {
 							break;
 						case NUMERIC:
 							tempObject.add(oldCell.getNumericCellValue());
-							break;*/
+							break;
 						case STRING:
 							tempObject.add(oldCell.getRichStringCellValue().toString());
 							break;
@@ -742,7 +743,6 @@ public class OpenExcelValidate2 {
 					}
 				}
 			}
-
 			
 			FileOutputStream out = new FileOutputStream(templateFile);
 
@@ -752,7 +752,7 @@ public class OpenExcelValidate2 {
 			//workbookReport.close();         DESCOMENTAR NO FINAL
 			workbookTemplate.close();
 
-			
+			*/
 					
 			System.out.println("Acabou aqui!!!!!!!");
 		}
